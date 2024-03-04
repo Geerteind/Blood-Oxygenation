@@ -1,3 +1,4 @@
+-=pl
 %% MAIN_INSILICOOXYESTIMATION template for oxygenation estimation in simulation data 
 %
 %DESCRIPTION:
@@ -42,7 +43,7 @@ addpath('helpers');
 %  keep a nice overview!
 
 %  set path to matfile:
-filePath = "C:\Users\annel\OneDrive - TU Eindhoven\Year 3\Q3\DBL Blood oxygenation\Code\DevelopmentScripts\data\Data_group5.mat" ; % string with path to raw file of ultrasound data to be loaded
+filePath = "C:\Users\annel\MATLAB Drive\Blood-Oxygenation\DevelopmentScripts\data\Data_group5.mat" ; % string with path to raw file of ultrasound data to be loaded
 
 %  set medium properties 
 %  (according to the values that were posted in the anonuncement on canvas):
@@ -54,10 +55,10 @@ mus_background = [11,9] ; % scattering coefficient @[750,850]nm of the backgroun
 g_background   = 0 ;  % scalar anisotropy factor of background medium [1]
 
 %  set image properties:
-resolution_x_m  = 000 ; % spacing between pixels in horizontal (x) direction [m]
-resolution_z_m  = 000 ; % spacing between pixels in vertical (z) direction [m]
-imgBoundary_x_m = 000 ; % distance of center of the transducer to left and right image boundary [m]
-imgBoundary_z_m = 000 ; % distance of transducer surface to bottom image boundary [m]
+resolution_x_m  = 0.0001 ; % spacing between pixels in horizontal (x) direction [m]
+resolution_z_m  = 0.0001 ; % spacing between pixels in vertical (z) direction [m]
+imgBoundary_x_m = 0.025 ; % distance of center of the transducer to left and right image boundary [m]
+imgBoundary_z_m = 0.05 ; % distance of transducer surface to bottom image boundary [m]
 
 %  set reconstruction properties:
 FNumber = 2; % positive number that defines the ratio of pixel depth to active aperture
@@ -75,7 +76,7 @@ FNumber = 2; % positive number that defines the ratio of pixel depth to active a
 %  precomputed before starting the actual data processing. .
 
 %  calculate effective light attenuation coefficients in the backgroud medium:
-mueff_background = 000 ; 
+mueff_background = sqrt(3*mua_background.*(mua_background+(1-g_background)*mus_background)) ; 
 
 %  compute image axes according to settings: 
 %  (with these two vectors, each image pixel gets assigned a location in 2D space)
@@ -111,23 +112,23 @@ drawnow;
 %  further processing, which is done in this section. 
 
 %  apply envelope detection (Nz-by-Nx array):
-imgDataComp750 = 000 ; 
-imgDataComp850 = 000 ; 
+imgDataComp750 = logcomp(imgDataRF750) ; 
+imgDataComp850 = logcomp(imgDataRF850) ; 
 
 %  calculate fluence compensation weights (Nz-by-Nx array):
 %  (calculate a depth dependent correction map according to what you found 
 %   out in the Research phase. Remeber that the axis is in [m] and mu is in [1/cm])
-fluenceCompMap750 = 000 ; 
-fluenceCompMap850 = 000 ; 
+fluenceCompMap750 = flipud(-((-mueff_background(1)*100)*exp((-mueff_background(1)*100)*z_axis))) ; 
+fluenceCompMap850 = flipud(-((-mueff_background(1)*100)*exp((-mueff_background(1)*100)*z_axis))); 
 
 %  apply fluence compensation (Nz-by-Nx array):
-imgDataComp750 = 000 ; 
-imgDataComp850 = 000 ; 
- 
+imgDataComp750 = fluenceCompMap750'*imgDataComp750 ; 
+imgDataComp850 = fluenceCompMap850'*imgDataComp850 ; 
+
 %  apply smoothing if you want:
 %  (search the internet of how you can smooth an image using filter functions in Matlab)
-imgDataComp750 = 000 ; 
-imgDataComp850 = 000 ; 
+%imgDataComp750 = 000 ; 
+%imgDataComp850 = 000 ; 
 
 %  show images:
 figure(3);
@@ -189,19 +190,19 @@ drawnow;
 %  "Data Tips" tool in the image Figure!
 
 %  convert component data (Nz-by-Nx array) into oxygenation map (Nz-by-Nx array) [%]:
-oxyMap = 000 ; 
+oxyMap = normalize(imgDataHBO2./(imgDataHB+imgDataHBO2)); 
 
 %  define mask to 0 values:
 %  (define a boolean matrix (Nz-by-Nx) that is true for each pixel, for 
 %   which the image value is lower than a certain threshold):
-zeroMask = ( 000 )... 
-          |( 000 );
+zeroMask = ( oxyMap<0.1 )... 
+          |( oxyMap == 0 );
 %  apply that mask:
 %  (by settingthe oxygenation map to 0 at all true pixels of the mask to 0)      
 oxyMap(zeroMask) = 0;
 
 %  show image:
-lowerThresh = 0; % lowest oxygenation value that will be displayed on colormap
+lowerThresh = 0.05; % lowest oxygenation value that will be displayed on colormap
 figure(6); imagesc(x_axis*1e3, z_axis*1e3, oxyMap, [lowerThresh,100]); 
            colormap([zeros(1,3); cool]); axis image; colorbar; 
            xlabel('x [mm]'); ylabel('z [mm]'); title('oxygenation [%]');

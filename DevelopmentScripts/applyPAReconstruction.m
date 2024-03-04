@@ -15,7 +15,7 @@
 %OUTPUTS:
 %  - imgData: (Nz-by-Nx) array with reconstructed RF image [a.u.]
 %
-%AUTHOR: 000 FILL IN YOUR TEAMNAME 000
+%AUTHOR: 000 TEAM 5 000
 
 function imgData = applyPAReconstruction(ReceiveData, fs,c0, x_elem, z_axis,x_axis, FNumber)
 
@@ -33,43 +33,44 @@ function imgData = applyPAReconstruction(ReceiveData, fs,c0, x_elem, z_axis,x_ax
     for i_fr = 1:Nfr
         
         %  loop over all pixels:
-        for i_z = 1 : 000 
-            for i_x = 1 : 000 
+        for i_z = 1 : length(z_axis) 
+            for i_x = 1 : length(x_axis) 
                 
                 %  sum over all elements:
-                for i_el = 1 : 000     
+                for i_el = 1 : Nel     
 
                     %  get pixel position and element position for this iteration:
-                    z_pix = 000 ;
-                    x_pix = 000 ;
-                    x_el  = 000 ;
+                    z_pix = z_axis(i_z) ;
+                    x_pix = x_axis(i_x) ;
+                    x_el  = x_elem(i_el) ;
 
                     %  restrict F-number (only add elements under a certain angle to the pixel):
                     if abs(z_pix/(x_el-x_pix)) < FNumber, continue; end
                     
                     %  compute PA delay as travel distance converted to a time [s]:
                     %  (according to your findings in the Research phase)
-                    tau_delays = 000 ;
+                    tau_delays = 1/(z_pix^2) + (x_el-x_pix)^2/c0 ;
 
                     %  convert delay from seconds to time index:
                     %  (this is still a real number, not an integer)
-                    i_delays = 000 ;
+                    i_delays = tau_delays/dt ;
                     
                     %  convert (real) index into integer index:
-                    i_delaysInt = 000 ;
-
+                    i_delaysInt = int32(round(i_delays)) ;
+                    disp('NNNNNNNNN')
                     %  don't add data for indexes that are out of range:
                     if (i_delaysInt<1)||(i_delaysInt>Nt), continue; end
-                    
+                    disp('yyyyyyyyyyyy')
                     %  retrieve Data at the respective delays:
                     %  (you can read out the data at the rounded integer index,
                     %   but for better image quality, you can also apply a 
                     %   weighted sum of values at multiple indexes around 
                     %   the real index, e.g. by usning linear interpolation) 
-                    imgData_pix = 000 ;
+                    imgData_pix = ReceiveData(i_delaysInt,i_el,i_fr) ;
 
                     %  add to pixel value by summing over all channels:
-                    imgData(i_z, i_x, i_fr) = 000 ;
+                   
+                    imgData(i_z, i_x, i_fr) = imgData(i_z,i_x,i_fr) + imgData_pix ;
                 end
             end
         end

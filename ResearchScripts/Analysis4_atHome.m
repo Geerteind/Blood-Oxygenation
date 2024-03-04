@@ -43,10 +43,10 @@ psf = .15 * gauspuls(-10:10,.3)' .* exp(-.01*(-20:20).^2);
 % plot filter kernel:
 figure(1); subplot(222); imagesc((-20:20)*.1,(-10:10)*.1,psf); title('point-spread function');
 axis image; colormap parula; colorbar; xlabel('x [mm]'); ylabel('z [mm]');
-
+%%
 % filter phantom with psf to get a simple photacoustic raw-data (RF) image:
 imgRF = imfilter(p0,psf);
-
+%%
 % plot RF image:
 figure(1); subplot(223); imagesc(z*1e3,x*1e3,imgRF); title('RF image');
 axis image; colormap gray; colorbar; xlabel('x [mm]'); ylabel('z [mm]');
