@@ -57,10 +57,8 @@ function imgData = applyPAReconstruction(ReceiveData, fs,c0, x_elem, z_axis,x_ax
                     
                     %  convert (real) index into integer index:
                     i_delaysInt = int32(round(i_delays)) ;
-                    disp('NNNNNNNNN')
                     %  don't add data for indexes that are out of range:
                     if (i_delaysInt<1)||(i_delaysInt>Nt), continue; end
-                    disp('yyyyyyyyyyyy')
                     %  retrieve Data at the respective delays:
                     %  (you can read out the data at the rounded integer index,
                     %   but for better image quality, you can also apply a 

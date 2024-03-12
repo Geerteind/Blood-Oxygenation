@@ -32,7 +32,7 @@ c0 = 1480; % speed of sound [m/s]
 [fileName,pathName] = uigetfile('*.raw','Select raw file containing PA data');
 filePath = [pathName,filesep,fileName];
 % or set manually:
-% filePath = 'Arm_Min_006_Rf_021122_201111-03_OBP_PA_64_820.raw';
+%filePath = 'Arm_Min_006_Rf_021122_201111-03_OBP_PA_64_820.raw';
 
 % load PA data:
 [RXData, fs,x_elem] = loadDataAcousticX(filePath);

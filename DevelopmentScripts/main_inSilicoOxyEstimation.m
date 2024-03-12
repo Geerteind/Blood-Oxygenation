@@ -1,4 +1,4 @@
--=pl
+
 %% MAIN_INSILICOOXYESTIMATION template for oxygenation estimation in simulation data 
 %
 %DESCRIPTION:
@@ -119,11 +119,11 @@ imgDataComp850 = logcomp(imgDataRF850) ;
 %  (calculate a depth dependent correction map according to what you found 
 %   out in the Research phase. Remeber that the axis is in [m] and mu is in [1/cm])
 fluenceCompMap750 = flipud(-((-mueff_background(1)*100)*exp((-mueff_background(1)*100)*z_axis))) ; 
-fluenceCompMap850 = flipud(-((-mueff_background(1)*100)*exp((-mueff_background(1)*100)*z_axis))); 
+fluenceCompMap850 = flipud(-((-mueff_background(2)*100)*exp((-mueff_background(2)*100)*z_axis))); 
 
 %  apply fluence compensation (Nz-by-Nx array):
-imgDataComp750 = fluenceCompMap750'*imgDataComp750 ; 
-imgDataComp850 = fluenceCompMap850'*imgDataComp850 ; 
+imgDataComp750 = imgDataComp750 .* fluenceCompMap750 ; 
+imgDataComp850 = imgDataComp850 .* fluenceCompMap850; 
 
 %  apply smoothing if you want:
 %  (search the internet of how you can smooth an image using filter functions in Matlab)
