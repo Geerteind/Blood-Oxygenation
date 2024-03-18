@@ -44,6 +44,7 @@ addpath('helpers');
 
 %  set path to matfile:
 filePath = "C:\Users\annel\MATLAB Drive\Blood-Oxygenation\DevelopmentScripts\data\Data_group5.mat" ; % string with path to raw file of ultrasound data to be loaded
+%filePath = "C:\Users\annel\OneDrive - TU Eindhoven\Year 3\Q3\DBL Blood oxygenation\PhantomExperiment\raw\PVA_blood_2_75MHz_min20deg_071_Rf_112323_231727_OBP_B_1536.raw"
 
 %  set medium properties 
 %  (according to the values that were posted in the anonuncement on canvas):
@@ -98,6 +99,7 @@ imgDataRF750 = applyPAReconstruction(receiveDataRF750, fs,c0,x_elem, z_axis,x_ax
 imgDataRF850 = applyPAReconstruction(receiveDataRF850, fs,c0,x_elem, z_axis,x_axis,FNumber);
 
 %  show PA images:
+
 figure(1);
 subplot(121); imagesc(x_axis*1e3, z_axis*1e3, imgDataRF750); 
               colormap hot; axis image; colorbar; 
@@ -118,12 +120,12 @@ imgDataComp850 = logcomp(imgDataRF850) ;
 %  calculate fluence compensation weights (Nz-by-Nx array):
 %  (calculate a depth dependent correction map according to what you found 
 %   out in the Research phase. Remeber that the axis is in [m] and mu is in [1/cm])
-fluenceCompMap750 = flipud(-((-mueff_background(1)*100)*exp((-mueff_background(1)*100)*z_axis))) ; 
-fluenceCompMap850 = flipud(-((-mueff_background(2)*100)*exp((-mueff_background(2)*100)*z_axis))); 
+fluenceCompMap750 = 1./exp(-z_axis*sqrt(3*mua_background(1)*(mua_background(1)+(1-g_background)*mus_background(1)))) ; % used the fluence formula
+fluenceCompMap850 = 1./exp(-z_axis*sqrt(3*mua_background(2)*(mua_background(2)+(1-g_background)*mus_background(2)))) ; 
 
 %  apply fluence compensation (Nz-by-Nx array):
-imgDataComp750 = imgDataComp750 .* fluenceCompMap750 ; 
-imgDataComp850 = imgDataComp850 .* fluenceCompMap850; 
+imgDataComp750 = fluenceCompMap750 .* imgDataComp750 ; 
+imgDataComp850 = fluenceCompMap850 .* imgDataComp850 ; 
 
 %  apply smoothing if you want:
 %  (search the internet of how you can smooth an image using filter functions in Matlab)

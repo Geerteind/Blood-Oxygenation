@@ -23,20 +23,22 @@ function [componentData1,componentData2] = applySpectalUnmixing(imgData1,imgData
     %  reshape imgData into a Nwl-by-Nx*Nz array with all pixels of the
     %  first wavelength in the first row and all pixels of the second 
     %  wavelenght in the second row:
-    spectralData    = [imgData1; imgData2];
+    imgData1flat = reshape(imgData1,1,Nz*Nx);
+    imgData2flat = reshape(imgData2,1,Nz*Nx);
+    spectralData = [imgData1flat,imgData2flat];
     
     %  create a mixing matrix:
     %  (The matrix consists of absorption coefficients and maps a
     %  column vector of component data [HB;HBO2] to a column vector of 
     %  wavelength data [750;850])
     mixMatrix  = [mu_component1; mu_component2];
-    
+    disp(mixMatrix)
     %  apply unmixing:
     %  (find an inverse solution to the mixing matrix. You can also look for  
     %   more advanced inversion approaches in literature! For example, you  
     %   can get a least-squares solution by using the backslash operator "\", 
     %   or a solution that enforces positive values using "lsqnoneg") :
-%      componentData = mixMatrix \ spectralData;
+%    componentData = mixMatrix \ spectralData;
     componentData = zeros(2,Nz*Nx) ;
     
     for i=1:Nx*Nz
@@ -46,9 +48,8 @@ function [componentData1,componentData2] = applySpectalUnmixing(imgData1,imgData
     %  reshape the (blood) component data from a two-row matrix with all 
     %  pixels of one component per row into a 3D array of two image matrixes
     %  with the two components in the third dimension:
-    componentData1 = reshape(componentData(), Nz, Nx);     
-    componentData2 = reshape(componentData(), Nz, Nx);  
-    
+    componentData1 = reshape(componentData(1,:), Nz, Nx);     
+    componentData2 = reshape(componentData(2,:), Nz, Nx);  
     
 end
 

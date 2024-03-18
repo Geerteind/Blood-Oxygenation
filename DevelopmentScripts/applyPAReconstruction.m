@@ -49,7 +49,7 @@ function imgData = applyPAReconstruction(ReceiveData, fs,c0, x_elem, z_axis,x_ax
                     
                     %  compute PA delay as travel distance converted to a time [s]:
                     %  (according to your findings in the Research phase)
-                    tau_delays = 1/(z_pix^2) + (x_el-x_pix)^2/c0 ;
+                    tau_delays = sqrt((x_el-x_pix)^2+z_pix^2)/c0;
 
                     %  convert delay from seconds to time index:
                     %  (this is still a real number, not an integer)
@@ -75,7 +75,7 @@ function imgData = applyPAReconstruction(ReceiveData, fs,c0, x_elem, z_axis,x_ax
 
 % uncomment plot command for debugging:
 %        % display reconstructed image :
-%         imagesc(x*1e3, z*1e3, abs(hilbert(imgData(:,:,i_fr)))); axis image; colormap gray;
+%         imagesc(imgData(:,i_x,:)*1e3, imgData(i_z,:,:)*1e3, abs(hilbert(imgData(:,:,i_fr)))); axis image; colormap gray;
 %         xlabel('x [mm]'); ylabel('z [mm]'); drawnow ;
 
         toc;
