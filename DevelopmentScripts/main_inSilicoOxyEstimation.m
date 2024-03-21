@@ -51,8 +51,8 @@ filePath = "C:\Users\annel\MATLAB Drive\Blood-Oxygenation\DevelopmentScripts\dat
 mua_HBO2       = [2.7738,5.6654] ; % 2 element vector with the absorption coefficients @(750,850)nm of oxygenated blood [1/cm]
 mua_HB         = [7.5248,3.7019] ; % 2 element vector with the absorption coefficients @(750,850)nm of deoxygenated blood [1/cm]
 g_blood        = 0.95 ; % scalar anisotropy factor of both kinds of blood [1]
-mua_background = [0.4,0.15] ; % absorption coefficient @[750,850]nm of the background medium [1/cm]
-mus_background = [11,9] ; % scattering coefficient @[750,850]nm of the background medium [1/cm] 
+mua_background = [0.4,0.15]./100 ; % absorption coefficient @[750,850]nm of the background medium [1/cm]
+mus_background = [11,9]./100 ; % scattering coefficient @[750,850]nm of the background medium [1/cm] 
 g_background   = 0 ;  % scalar anisotropy factor of background medium [1]
 
 %  set image properties:
@@ -120,8 +120,11 @@ imgDataComp850 = logcomp(imgDataRF850) ;
 %  calculate fluence compensation weights (Nz-by-Nx array):
 %  (calculate a depth dependent correction map according to what you found 
 %   out in the Research phase. Remeber that the axis is in [m] and mu is in [1/cm])
-fluenceCompMap750 = 1./exp(-z_axis*sqrt(3*mua_background(1)*(mua_background(1)+(1-g_background)*mus_background(1)))) ; % used the fluence formula
-fluenceCompMap850 = 1./exp(-z_axis*sqrt(3*mua_background(2)*(mua_background(2)+(1-g_background)*mus_background(2)))) ; 
+fluence_mua = mua_background; 
+fluence_mus = mus_background;
+
+fluenceCompMap750 = 1./exp(-z_axis*mueff_background(1)) ; % used the fluence formula
+fluenceCompMap850 = 1./exp(-z_axis*mueff_background(2)) ; 
 
 %  apply fluence compensation (Nz-by-Nx array):
 imgDataComp750 = fluenceCompMap750 .* imgDataComp750 ; 
