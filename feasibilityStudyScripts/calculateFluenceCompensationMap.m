@@ -26,12 +26,34 @@ function fluenceCompensationMap = calculateFluenceCompensationMap(z_axis,x_axis,
     % (this can be a binary mask that is 1 in each pixel that represents 
     %  tissue and 0 for each pixel that represents water. You can use the US 
     %  image and create a mask from it by thresholding)
-    tissueMask = 000;
- 
+    tissueMask = (imgUS > -30); %Everything above -30 is true (1) and not water
+
     %  create Fluence map:
     % (use your mask to calcualte the fluence at each depth
-    fluenceMap = 000;
-%     imagesc(fluenceMap)
+    fluenceMap = zeros(length(z_axis),length(x_axis)); % Matrix with zeros with same dimension image
+
+    for x = 1:length(x_axis)
+%        fluenceWater = zeros(length(z_axis));
+%        fluenceTissue = zeros(length(z_axis));
+
+        for z = 1:20
+            fluenceWater = exp(-z_axis(~tissueMask(z,x)) * absCoeffs(1));
+            fluenceTissue = exp(-z_axis(tissueMask(z,x)) * absCoeffs(2));
+            disp(fluenceWater)
+            disp(fluenceTissue)
+
+
+            if (size(fluenceWater) == [1,1])
+                fluenceMap(z,x) = fluenceWater;
+            else
+                fluenceMap(z,x) = fluenceTissue;
+            end
+
+        end
+
+    end
+    
+    imagesc(fluenceMap)
     
     %  convert fluence map to fluence compensation map:
     %  (which is later multiplied with the PA images)

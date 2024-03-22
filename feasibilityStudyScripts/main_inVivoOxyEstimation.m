@@ -2,7 +2,7 @@
 %
 % DESCRIPTION: 000 FILL IN A DOCUMENTATION 000
 %
-%AUTHOR: 000 FILL IN TEAMNAME 000
+%AUTHOR: 000 TEAM 5 000
 
 addpath('helpers');
 
@@ -17,7 +17,7 @@ filePathW850 = "C:\Users\annel\OneDrive - TU Eindhoven\Year 3\Q3\DBL Blood oxyge
 c0             = 1540; % scalar with speed of sound use din reconstruction [m/s]
 mua_HBO2       = [2.7738,5.6654]; % Nwl element vector with the absorption coefficients of oxygenated blood @ [750,850]nm [a.u.]
 mua_HB         = [7.5248,3.7019]; % Nwl element vector with the absorption coefficients of oxygenated blood @ [750,850]nm [a.u.]
-mua_water      = 000; % absorption coefficient of water @ [750,850]nm [1/cm]     % plot(lambdaH2O,muH2O)
+mua_water      = [0.028484,0.041986]./100; % absorption coefficient of water @ [750,850]nm [1/m]     % plot(lambdaH2O,muH2O)
 mua_background = [0.4,0.15]./100; % absorption coefficient of general tissue @ [750,850]nm [1/m] %      plot(lambda_genTiss,mu_abs_genTiss_30water)
 mus_background = [11,9]./100;     % scattering coefficient @[750,850]nm of the background medium [1/m] 
 
@@ -30,7 +30,7 @@ imgBoundary_x_m = 0.0212; % distance of center of the transducer to left and rig
 imgBoundary_z_m = 0.02; % distance of transducer surface to bottom image boundary [m]
 
 %  set reconstruction properties:
-framesIndexes = 000; % vector with indexes of frames that will be averaged (use the script "test_findFrames.m" to identify which frames to use!)
+framesIndexes = 80:95; % vector with indexes of frames that will be averaged (use the script "test_findFrames.m" to identify which frames to use!)
 FNumber       = 2;   % positive number that defines the ratio of pixel depth to active aperture
 
 %% Load receive data
@@ -75,18 +75,25 @@ drawnow;
 
 %  get mean of frames defined in "framesIndexes": 
 % (convert Nz-by-Nx-by-Nfr array to a Nz-by-Nx array)
-receiveDataRF750_avg = 000;
-receiveDataRF850_avg = 000;
+receiveDataRF750_avg = mean(receiveDataRF750(:,:,framesIndexes), 3);
+receiveDataRF850_avg = mean(receiveDataRF850(:,:,framesIndexes), 3);
 
 %% Reconstruct PA images 
 %  reuse and adapt your code from the product development phase!
 
 %  run PA reconstruction for both wavelengths (Nz-by-Nx-by-Nfr array):
-imgDataRF750 = 000;
-imgDataRF850 = 000;
+imgDataRF750 = applyPAReconstruction(receiveDataRF750_avg,fs_pa,c0,x_elem,z_axis,x_axis,FNumber);
+imgDataRF850 = applyPAReconstruction(receiveDataRF850_avg,fs_pa,c0,x_elem,z_axis,x_axis,FNumber);
 
 % show PA images:
-% ... 000 ...
+figure(1);
+subplot(121); imagesc(x_axis*1e3, z_axis*1e3, imgDataRF750); 
+              colormap hot; axis image; colorbar; 
+              xlabel('x [mm]'); ylabel('z [mm]'); title('Image @750nm');                                                        
+subplot(122); imagesc(x_axis*1e3, z_axis*1e3, imgDataRF850);
+              colormap hot; axis image; colorbar; 
+              xlabel('x [mm]'); ylabel('z [mm]'); title('Image @850nm');
+drawnow;
 
 %% Image postprocessing
 %  Before you can apply the spectral unmixing, the image data requires some
@@ -95,8 +102,9 @@ imgDataRF850 = 000;
 %  thresholding, cropping or other post processing steps. Be creative! 
 
 %  apply envelope detection (Nz-by-Nx array):
-imgDataComp750 = 000;
-imgDataComp850 = 000;
+f1 = 20;
+imgDataComp750 = envelope(imgDataRF750,f1,'analytic'); % signal envelope using hilbert filter
+imgDataComp850 = envelope(imgDataRF850,f1,'analytic');
 
 %  correct for laser intensity ratio:
 imgDataComp750 = imgDataComp750 * 1.63; %(laser intensity of 750 is 1.63 times lower than 850)

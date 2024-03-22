@@ -58,8 +58,8 @@ save('ReconstructedRDData.mat','z_axis','x_axis','imgsDataRF750','imgsDataRF750'
 
 % set indexes of frames that will be displayed:
 %(adjust this value to find a good time span where the image content does not move to much)
-framesIndexes =  1:size(imgsDataRF750,3);% 5:15;%  vector with indexes of frames that will be averaged 
-
+%framesIndexes =  1:size(imgsDataRF750,3);% 5:15;%  vector with indexes of frames that will be averaged 
+framesIndexes =  80:95; % 5:15;%  vector with indexes of frames that will be averaged 
 for i_fr = framesIndexes
     
     % show US image:
@@ -85,7 +85,7 @@ end
 
 %% Apply averaging:
 
-% framesIndexes =  5:10;
+framesIndexes =  80:95;
 
 % apply frame averaging on reconstructed images:
 imgDataRF750_avg = mean(imgsDataRF750(:,:,framesIndexes), 3);
