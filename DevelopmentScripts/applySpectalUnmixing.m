@@ -31,8 +31,8 @@ function [componentData1,componentData2] = applySpectalUnmixing(imgData1,imgData
     %  (The matrix consists of absorption coefficients and maps a
     %  column vector of component data [HB;HBO2] to a column vector of 
     %  wavelength data [750;850])
-    mixMatrix  = [mu_component1; mu_component2];
-
+    mixMatrix  = [mu_component1', mu_component2'];
+    disp(mixMatrix)
     %  apply unmixing:
     %  (find an inverse solution to the mixing matrix. You can also look for  
     %   more advanced inversion approaches in literature! For example, you  

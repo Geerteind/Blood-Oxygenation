@@ -51,15 +51,15 @@ filePath = "C:\Users\annel\MATLAB Drive\Blood-Oxygenation\DevelopmentScripts\dat
 mua_HBO2       = [2.7738,5.6654] ; % 2 element vector with the absorption coefficients @(750,850)nm of oxygenated blood [1/cm]
 mua_HB         = [7.5248,3.7019] ; % 2 element vector with the absorption coefficients @(750,850)nm of deoxygenated blood [1/cm]
 g_blood        = 0.95 ; % scalar anisotropy factor of both kinds of blood [1]
-mua_background = [0.4,0.15]./100 ; % absorption coefficient @[750,850]nm of the background medium [1/cm]
-mus_background = [11,9]./100 ; % scattering coefficient @[750,850]nm of the background medium [1/cm] 
-g_background   = 0 ;  % scalar anisotropy factor of background medium [1]
+mua_background = [0.4,0.15]./100 ; % absorption coefficient @[750,850]nm of the background medium [1/m]
+mus_background = [11,9]./100 ; % scattering coefficient @[750,850]nm of the background medium [1/m] 
+g_background   = 0.95 ;  % scalar anisotropy factor of background medium [1]
 
 %  set image properties:
 resolution_x_m  = 0.0001 ; % spacing between pixels in horizontal (x) direction [m]
 resolution_z_m  = 0.0001 ; % spacing between pixels in vertical (z) direction [m]
-imgBoundary_x_m = 0.025 ; % distance of center of the transducer to left and right image boundary [m]
-imgBoundary_z_m = 0.05 ; % distance of transducer surface to bottom image boundary [m]
+imgBoundary_x_m = 0.01 ; % distance of center of the transducer to left and right image boundary [m]
+imgBoundary_z_m = 0.015 ; % distance of transducer surface to bottom image boundary [m]
 
 %  set reconstruction properties:
 FNumber = 2; % positive number that defines the ratio of pixel depth to active aperture
@@ -112,17 +112,17 @@ drawnow;
 %%  Image postprocessing
 %  Before you can apply the spectral unmixing, the image data requires some
 %  further processing, which is done in this section. 
-
+%%
 %  apply envelope detection (Nz-by-Nx array):
-imgDataComp750 = logcomp(imgDataRF750) ; 
-imgDataComp850 = logcomp(imgDataRF850) ; 
+%imgDataComp750 = logcomp(imgDataRF750) ; 
+%imgDataComp850 = logcomp(imgDataRF850) ; 
+f1 = 20;
+imgDataComp750 = envelope(imgDataRF750,f1,'analytic'); % signal envelope using hilbert filter
+imgDataComp850 = envelope(imgDataRF850,f1,'analytic');
 
 %  calculate fluence compensation weights (Nz-by-Nx array):
 %  (calculate a depth dependent correction map according to what you found 
 %   out in the Research phase. Remeber that the axis is in [m] and mu is in [1/cm])
-fluence_mua = mua_background; 
-fluence_mus = mus_background;
-
 fluenceCompMap750 = 1./exp(-z_axis*mueff_background(1)) ; % used the fluence formula
 fluenceCompMap850 = 1./exp(-z_axis*mueff_background(2)) ; 
 
@@ -132,8 +132,15 @@ imgDataComp850 = fluenceCompMap850 .* imgDataComp850 ;
 
 %  apply smoothing if you want:
 %  (search the internet of how you can smooth an image using filter functions in Matlab)
-%imgDataComp750 = 000 ; 
-%imgDataComp850 = 000 ; 
+%{
+highpassfilter = [-1/9,-1/9,-1/9;
+                  -1/9,8/9,-1/9;
+                  -1/9,-1/9,-1/9];
+imgDataComp750 = imfilter(imgDataComp750,highpassfilter);
+imgDataComp850 = imfilter(imgDataComp850,highpassfilter);
+%}
+imgDataComp750 = imgaussfilt(imgDataComp750,2) ; % Gaussian filter: maybe a filter that retain edges would be better?
+imgDataComp850 = imgaussfilt(imgDataComp850,2) ; 
 
 %  show images:
 figure(3);
@@ -195,13 +202,14 @@ drawnow;
 %  "Data Tips" tool in the image Figure!
 
 %  convert component data (Nz-by-Nx array) into oxygenation map (Nz-by-Nx array) [%]:
-oxyMap = normalize(imgDataHBO2./(imgDataHB+imgDataHBO2)); 
-
+%oxyMap = 100*(imgDataHBO2./imgDataHB); 
+oxyMap = 100*imgDataHBO2./max(max(imgDataHB(:)),max(imgDataHBO2(:)));
 %  define mask to 0 values:
 %  (define a boolean matrix (Nz-by-Nx) that is true for each pixel, for 
 %   which the image value is lower than a certain threshold):
-zeroMask = ( oxyMap<0.1 )... 
-          |( oxyMap == 0 );
+zeroMask = ( oxyMap < 20 )...
+          |( oxyMap > 100 );
+%zeroMask = (oxyMap );
 %  apply that mask:
 %  (by settingthe oxygenation map to 0 at all true pixels of the mask to 0)      
 oxyMap(zeroMask) = 0;
