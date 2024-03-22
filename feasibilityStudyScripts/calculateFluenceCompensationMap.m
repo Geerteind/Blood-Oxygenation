@@ -34,10 +34,10 @@ function fluenceCompensationMap = calculateFluenceCompensationMap(z_axis,x_axis,
     for x = 1:length(x_axis)
 %        fluenceWater = zeros(length(z_axis));
 %        fluenceTissue = zeros(length(z_axis));
-        %fluence = (sum(~tissueMask(:,x)) * exp(-z_axis * absCoeffs(1))) + (sum(tissueMask(:,x)) * exp(-z_axis * absCoeffs(2)));
+        fluence = (sum(~tissueMask(:,x)) * exp(-z_axis * absCoeffs(1))) + (sum(tissueMask(:,x)) * exp(-z_axis * absCoeffs(2)));
         
-        %fluenceMap(:,x) = fluence;
-        
+        fluenceMap(:,x) = fluence;
+        %{
         for z = 1:length(z_axis)
             %fluenceWater = ~tissueMask(z,x) * exp(-z_axis(z) * absCoeffs(1));
             %fluenceTissue = tissueMask(z,x) * exp(-z_axis(z) * absCoeffs(2));
@@ -49,7 +49,7 @@ function fluenceCompensationMap = calculateFluenceCompensationMap(z_axis,x_axis,
             end
 
         end
-
+        %}
     end
     legend()
     imagesc(fluenceMap)
