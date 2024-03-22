@@ -18,7 +18,9 @@ c0             = 1540; % scalar with speed of sound use din reconstruction [m/s]
 mua_HBO2       = [2.7738,5.6654]; % Nwl element vector with the absorption coefficients of oxygenated blood @ [750,850]nm [a.u.]
 mua_HB         = [7.5248,3.7019]; % Nwl element vector with the absorption coefficients of oxygenated blood @ [750,850]nm [a.u.]
 mua_water      = 000; % absorption coefficient of water @ [750,850]nm [1/cm]     % plot(lambdaH2O,muH2O)
-mua_background = [0.4,0.15]; % absorption coefficient of general tissue @ [750,850]nm [1/cm] %      plot(lambda_genTiss,mu_abs_genTiss_30water)
+mua_background = [0.4,0.15]./100; % absorption coefficient of general tissue @ [750,850]nm [1/m] %      plot(lambda_genTiss,mu_abs_genTiss_30water)
+mus_background = [11,9]./100;     % scattering coefficient @[750,850]nm of the background medium [1/m] 
+
 % ... 000 add more properties if you need them ...
 
 %  set image properties:

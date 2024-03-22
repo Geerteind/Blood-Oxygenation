@@ -120,6 +120,7 @@ f1 = 20;
 imgDataComp750 = envelope(imgDataRF750,f1,'analytic'); % signal envelope using hilbert filter
 imgDataComp850 = envelope(imgDataRF850,f1,'analytic');
 
+
 %  calculate fluence compensation weights (Nz-by-Nx array):
 %  (calculate a depth dependent correction map according to what you found 
 %   out in the Research phase. Remeber that the axis is in [m] and mu is in [1/cm])
@@ -202,16 +203,20 @@ drawnow;
 %  "Data Tips" tool in the image Figure!
 
 %  convert component data (Nz-by-Nx array) into oxygenation map (Nz-by-Nx array) [%]:
-%oxyMap = 100*(imgDataHBO2./imgDataHB); 
-oxyMap = 100*imgDataHBO2./max(max(imgDataHB(:)),max(imgDataHBO2(:)));
+oxyMap = 100*(imgDataHBO2./(imgDataHB+imgDataHBO2));
+%oxyMap = 100*(imgDataHB./imgDataHBO2);
+
+%oxyMap = 100*imgDataHBO2./max(max(imgDataHB(:)),max(imgDataHBO2(:)));
+
 %  define mask to 0 values:
 %  (define a boolean matrix (Nz-by-Nx) that is true for each pixel, for 
 %   which the image value is lower than a certain threshold):
-zeroMask = ( oxyMap < 20 )...
+zeroMask = ( imgDataComp750+imgDataComp850 < 0.3*max(max(imgDataComp750(:)),max(imgDataComp850(:))) )...
           |( oxyMap > 100 );
 %zeroMask = (oxyMap );
 %  apply that mask:
 %  (by settingthe oxygenation map to 0 at all true pixels of the mask to 0)      
+%
 oxyMap(zeroMask) = 0;
 
 %  show image:

@@ -15,9 +15,10 @@ addpath('helpers');
 %% Settings:
 
 % set paths (note that W1->850nm and W2->750nm):
-filePathUS   = 'data/hans_arm_invivo_000_Rf_021722_174806_OBP_B_Extract_257.raw'; % string with path to raw file of ultrasound data to be loaded
-filePathW750 = 'data/hans_arm_invivo_000_Rf_021722_174806_OBP_PA_Wave2_PCAVG_384_127.raw'; % string with path to raw file of photoacoutic data (second wavelength) to be loaded
-filePathW850 = 'data/hans_arm_invivo_000_Rf_021722_174806_OBP_PA_Wave1_PCAVG_384_128.raw'; % string with path to raw file of photoacoutic data (first wavelength) to be loaded
+absoluteFilePath = 'C:\Users\annel\OneDrive - TU Eindhoven\Year 3\Q3\DBL Blood oxygenation\Code\feasibilityStudyScripts\feasibilityStudyScripts\';
+filePathUS   = append(absoluteFilePath,'data/hans_arm_invivo_000_Rf_021722_174806_OBP_B_Extract_257.raw'); % string with path to raw file of ultrasound data to be loaded
+filePathW750 = append(absoluteFilePath,'data/hans_arm_invivo_000_Rf_021722_174806_OBP_PA_Wave2_PCAVG_384_127.raw'); % string with path to raw file of photoacoutic data (second wavelength) to be loaded
+filePathW850 = append(absoluteFilePath,'data/hans_arm_invivo_000_Rf_021722_174806_OBP_PA_Wave1_PCAVG_384_128.raw'); % string with path to raw file of photoacoutic data (first wavelength) to be loaded
 
 % set image properties:
 resolution_x_m  = .2*1e-3; % spacing between pixels in horizontal (x) direction [m]
@@ -51,7 +52,7 @@ imgsDataRF850 = applyPAReconstruction(receiveDataRF850, fs_pa,c0, x_elem, z_axis
 
 % save data:
 %(you can uncommend this part to avoid the need to reconstruct them again)
-% save('ReconstructedRDData.mat','z_axis','x_axis','imgsDataRF750','imgsDataRF750','imgsDataUS');
+save('ReconstructedRDData.mat','z_axis','x_axis','imgsDataRF750','imgsDataRF750','imgsDataUS');
 
 %% View all frames:
 
