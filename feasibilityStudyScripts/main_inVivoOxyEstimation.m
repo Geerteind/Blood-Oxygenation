@@ -18,6 +18,7 @@ c0             = 1540; % scalar with speed of sound use din reconstruction [m/s]
 mua_HBO2       = [2.7738,5.6654]; % Nwl element vector with the absorption coefficients of oxygenated blood @ [750,850]nm [a.u.]
 mua_HB         = [7.5248,3.7019]; % Nwl element vector with the absorption coefficients of oxygenated blood @ [750,850]nm [a.u.]
 mua_water      = [0.028484,0.041986]./100; % absorption coefficient of water @ [750,850]nm [1/m]     % plot(lambdaH2O,muH2O)
+
 mua_background = [0.4,0.15]./100; % absorption coefficient of general tissue @ [750,850]nm [1/m] %      plot(lambda_genTiss,mu_abs_genTiss_30water)
 mus_background = [11,9]./100;     % scattering coefficient @[750,850]nm of the background medium [1/m] 
 
@@ -121,7 +122,9 @@ imgDataComp850 = imgDataComp850 .* fluenceCompMap850;
 
 %  cropping:
 %(set regions that contain artifacts (e.g. at the top of the images) to 0)
-% ... 000 ...
+tissueMask = (imgUS > -30);
+disp(size(tissueMask))
+%disp(sum(tissueMask))
 
 %  smoothing:
 % ... 000 ...

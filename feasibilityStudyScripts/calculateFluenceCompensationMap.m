@@ -10,7 +10,7 @@
 % - z_axis: array with z positions of the pixels of the fluence compensation map [m]
 % - x_axis: array with z positions of the pixels of the fluence compensation map [m] 
 % - absCoeffs: e.g. matrix of absorption coefficients of the different materials
-%              (e.g. tissue and water) at the two wavelengths [1/cm].  
+%              (e.g. tissue and water) at the two wavelengths [1/m].  
 % - imgUS: ultrasound image defined on the same axes as the map that can be 
 %          used for differentiating between the materials (water and tissue) [a.u]
 %
@@ -26,24 +26,23 @@ function fluenceCompensationMap = calculateFluenceCompensationMap(z_axis,x_axis,
     % (this can be a binary mask that is 1 in each pixel that represents 
     %  tissue and 0 for each pixel that represents water. You can use the US 
     %  image and create a mask from it by thresholding)
-    tissueMask = (imgUS > -30); %Everything above -30 is true (1) and not water
+    tissueMask = (imgUS > -37); %Everything above -37 is true (1) and not water
 
     %  create Fluence map:
     % (use your mask to calcualte the fluence at each depth
     fluenceMap = zeros(length(z_axis),length(x_axis)); % Matrix with zeros with same dimension image
-
     for x = 1:length(x_axis)
 %        fluenceWater = zeros(length(z_axis));
 %        fluenceTissue = zeros(length(z_axis));
-
-        for z = 1:20
-            fluenceWater = exp(-z_axis(~tissueMask(z,x)) * absCoeffs(1));
-            fluenceTissue = exp(-z_axis(tissueMask(z,x)) * absCoeffs(2));
-            disp(fluenceWater)
-            disp(fluenceTissue)
-
-
-            if (size(fluenceWater) == [1,1])
+        %fluence = (sum(~tissueMask(:,x)) * exp(-z_axis * absCoeffs(1))) + (sum(tissueMask(:,x)) * exp(-z_axis * absCoeffs(2)));
+        
+        %fluenceMap(:,x) = fluence;
+        
+        for z = 1:length(z_axis)
+            %fluenceWater = ~tissueMask(z,x) * exp(-z_axis(z) * absCoeffs(1));
+            %fluenceTissue = tissueMask(z,x) * exp(-z_axis(z) * absCoeffs(2));
+            
+            if (fluenceWater > 0 )
                 fluenceMap(z,x) = fluenceWater;
             else
                 fluenceMap(z,x) = fluenceTissue;
@@ -52,8 +51,9 @@ function fluenceCompensationMap = calculateFluenceCompensationMap(z_axis,x_axis,
         end
 
     end
-    
+    legend()
     imagesc(fluenceMap)
+    colorbar
     
     %  convert fluence map to fluence compensation map:
     %  (which is later multiplied with the PA images)
