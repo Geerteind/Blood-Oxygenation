@@ -66,11 +66,24 @@ Nz = length(z_axis);
 figure(2); 
 i_frameUS = 10; % index of frame to retrieve
 imgUS = getUSImage(receiveDataRFUS(:,:,i_frameUS), fs_us,x_elem,c0, z_axis,x_axis);
+% Determine water in US image
+tissueMask = (imgUS > -30);
 
+% Calculates minimum amount of water pixels for cropping
+minWater = length(z_axis); % Minimum amount of water pixels in a vertical line
+for x = 1:(length(x_axis)-1)
+    if (minWater > min(sum(~tissueMask(:,x)),sum(~tissueMask(:,x+1))))
+        minWater = min(sum(~tissueMask(:,x)),sum(~tissueMask(:,x+1)));
+    end
+end
+
+USsmall= imgUS(minWater:end,:); %The cropped US image
 %  show images:
-imagesc(x_axis*1e3,z_axis*1e3,imgUS); colormap gray; axis image; colorbar;
-xlabel('x [mm]'); ylabel('z [mm]'); title('Image (US)');
-drawnow;
+subplot(121);   imagesc(x_axis*1e3,z_axis*1e3,imgUS); colormap gray; axis image; colorbar; % The normal US image
+                xlabel('x [mm]'); ylabel('z [mm]'); title('Image (US)');
+subplot(122);   imagesc(x_axis(:)*1e3,z_axis(minWater:end)*1e3,USsmall); colormap gray; axis image; colorbar; % The cropped US image
+                xlabel('x [mm]'); ylabel('z [mm]'); title('Image (US) cropped');
+                drawnow;
 
 %% Apply frame averaging
 %  Apply averaging of the receive data by computing the mean of multiple
@@ -106,14 +119,24 @@ drawnow;
 %  processing steps needed, than for the simulation data, such as smoothing, 
 %  thresholding, cropping or other post processing steps. Be creative! 
 
+% Visualize the data distribution of the images before post-processing
+figure(3);
+subplot(121); histogram(imgDataRF750)
+              axis image; 
+              xlabel('pixel value'); ylabel('Frequency'); title('Data distribution image @750nm');
+subplot(122); histogram(imgDataRF850)
+              axis image; 
+              xlabel('pixel value'); ylabel('Frequency'); title('Data distribution image @850nm');
+drawnow;
+%% Actual processing
 %  apply envelope detection (Nz-by-Nx array):
 f1 = 20;
 imgDataComp750 = envelope(imgDataRF750,f1,'analytic'); % signal envelope using hilbert filter
 imgDataComp850 = envelope(imgDataRF850,f1,'analytic');
-%%
+
 %  correct for laser intensity ratio:
 imgDataComp750 = imgDataComp750 * 1.63; %(laser intensity of 750 is 1.63 times lower than 850)
-%%
+
 %  calculate fluence compensation weights (Nz-by-Nx array):
 %  (you can segment the US image to assing materials, especially to 
 %  distinguish tissue and the water layer on top of the tissue)
@@ -123,26 +146,28 @@ fluenceCompMap850 = calculateFluenceCompensationMap(z_axis,x_axis, [mua_water(2)
 %  apply fluence compensation (Nz-by-Nx array):
 imgDataComp750 = imgDataComp750 .* fluenceCompMap750; 
 imgDataComp850 = imgDataComp850 .* fluenceCompMap850; 
-%%
+
 %  cropping:
 %(set regions that contain artifacts (e.g. at the top of the images) to 0)
-tissueMask = (imgUS > -30);
-minWater = length(z_axis);
-for x = 1:(length(x_axis)-1)
-    if (minWater > min(sum(~tissueMask(:,x)),sum(~tissueMask(:,x+1))))
-        minWater = min(sum(~tissueMask(:,x)),sum(~tissueMask(:,x+1)));
-    end
-end
+
 imgDataComp750 = imgDataComp750(minWater:end,:);
 imgDataComp850 = imgDataComp850(minWater:end,:);
-%%
+
 %  smoothing:
 imgDataComp750 = imgaussfilt(imgDataComp750,2) ; % Gaussian filter: maybe a filter that retain edges would be better?
 imgDataComp850 = imgaussfilt(imgDataComp850,2) ; 
 
 %  other processing steps:
 % ... 000 ...
-
+%%
+% Visualize the data distribution of the images after post-processing
+figure(3);
+subplot(121); histogram(imgDataComp750)
+              xlabel('pixel value'); ylabel('Frequency'); title('Data distribution image @750nm');
+subplot(122); histogram(imgDataComp850)              
+              xlabel('pixel value'); ylabel('Frequency'); title('Data distribution image @850nm');
+drawnow;
+%% Final images after processing
 %  show images:
 figure(3);
 subplot(121); imagesc(x_axis*1e3, z_axis*1e3, imgDataComp750); 
@@ -172,9 +197,9 @@ drawnow;
 %  convert component data (Nz-by-Nx array) into oxygenation map (Nz-by-Nx array) [%]:
 oxyMap = 100*(imgDataHBO2./(imgDataHB+imgDataHBO2));
 % define a boolean matrix (Nz-by-Nx) that is true for each pixel, for 
-%   which the image value is lower than a 25% of the maximum in the unmixed
+%   which the image value is lower than a 30% of the maximum in the unmixed
 %   images
-zeroMask = ( imgDataComp750+imgDataComp850 < 0.25*max(max(imgDataComp750(:)),max(imgDataComp850(:))) )...
+zeroMask = ( imgDataComp750+imgDataComp850 < 0.3*max(max(imgDataComp750(:)),max(imgDataComp850(:))) )...
           |( oxyMap > 100 );
 oxyMap(zeroMask) = 0;
 
