@@ -136,13 +136,13 @@ imgDataComp850 = envelope(imgDataRF850,f1,'analytic');
 
 %  correct for laser intensity ratio:
 imgDataComp750 = imgDataComp750 * 1.63; %(laser intensity of 750 is 1.63 times lower than 850)
-
+%%
 %  calculate fluence compensation weights (Nz-by-Nx array):
 %  (you can segment the US image to assing materials, especially to 
 %  distinguish tissue and the water layer on top of the tissue)
 fluenceCompMap750 = calculateFluenceCompensationMap(z_axis,x_axis, [mua_water(1),mua_background(1)], imgUS);
 fluenceCompMap850 = calculateFluenceCompensationMap(z_axis,x_axis, [mua_water(2),mua_background(2)], imgUS);
-
+%%
 %  apply fluence compensation (Nz-by-Nx array):
 imgDataComp750 = imgDataComp750 .* fluenceCompMap750; 
 imgDataComp850 = imgDataComp850 .* fluenceCompMap850; 

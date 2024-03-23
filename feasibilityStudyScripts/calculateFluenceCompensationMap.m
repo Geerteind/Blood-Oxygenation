@@ -32,28 +32,21 @@ function fluenceCompensationMap = calculateFluenceCompensationMap(z_axis,x_axis,
     % (use your mask to calcualte the fluence at each depth
     fluenceMap = zeros(length(z_axis),length(x_axis)); % Matrix with zeros with same dimension image
     for x = 1:length(x_axis)
-%        fluenceWater = zeros(length(z_axis));
-%        fluenceTissue = zeros(length(z_axis));
-        fluence = (sum(~tissueMask(:,x)) * exp(-z_axis * absCoeffs(1))) + (sum(tissueMask(:,x)) * exp(-z_axis * absCoeffs(2)));
+        %fluence = (sum(~tissueMask(:,x)) * exp(-z_axis * absCoeffs(1))) + (sum(tissueMask(:,x)) * exp(-z_axis * absCoeffs(2)));
+        %fluence = fluenceWater + fluenceTissue;
+        %fluenceMap(:,x) = fluence;
         
-        fluenceMap(:,x) = fluence;
-        %{
         for z = 1:length(z_axis)
-            %fluenceWater = ~tissueMask(z,x) * exp(-z_axis(z) * absCoeffs(1));
-            %fluenceTissue = tissueMask(z,x) * exp(-z_axis(z) * absCoeffs(2));
-            
-            if (fluenceWater > 0 )
-                fluenceMap(z,x) = fluenceWater;
-            else
-                fluenceMap(z,x) = fluenceTissue;
-            end
-
+            fluenceWater = sum(~tissueMask(1:z,x)) * exp(-z_axis(z) * absCoeffs(1));
+            fluenceTissue = sum(tissueMask(1:z,x)) * exp(-z_axis(z) * absCoeffs(2));
+            fluence = (fluenceWater + fluenceTissue)/length(tissueMask(1:z,x));
+            fluenceMap(z,x) = fluence;
         end
-        %}
+        
     end
-    legend()
-    imagesc(fluenceMap)
-    colorbar
+    %imagesc(x_axis*1e3, z_axis*1e3,fluenceMap); axis image;
+    %colorbar; colormap parula;
+    %xlabel('x [mm]'); ylabel('z [mm]'); title('Fluence compensation map'); 
     
     %  convert fluence map to fluence compensation map:
     %  (which is later multiplied with the PA images)
