@@ -19,11 +19,9 @@ addpath('helpers');
 %filePathUS   = append(absoluteFilePath,'data/hans_arm_invivo_000_Rf_021722_174806_OBP_B_Extract_257.raw'); % string with path to raw file of ultrasound data to be loaded
 %filePathW750 = append(absoluteFilePath,'data/hans_arm_invivo_000_Rf_021722_174806_OBP_PA_Wave2_PCAVG_384_127.raw'); % string with path to raw file of photoacoutic data (second wavelength) to be loaded
 %filePathW850 = append(absoluteFilePath,'data/hans_arm_invivo_000_Rf_021722_174806_OBP_PA_Wave1_PCAVG_384_128.raw'); % string with path to raw file of photoacoutic data (first wavelength) to be loaded
-% In vivo data: 
-filePathUS   = "C:\Users\annel\OneDrive - TU Eindhoven\Year 3\Q3\DBL Blood oxygenation\Code\InVivoData_group5\raw\PVA_blood_2_75MHz_min20deg_078_Rf_120523_213855_OBP_B_Extract_36.raw"; % string with path to raw file of ultrasound data to be loaded
-filePathW750 = "C:\Users\annel\OneDrive - TU Eindhoven\Year 3\Q3\DBL Blood oxygenation\Code\InVivoData_group5\raw\PVA_blood_2_75MHz_min20deg_078_Rf_120523_213855_OBP_PA_64_221.raw"; % string with path to raw file of photoacoutic data (second wavelength) to be loaded
-filePathW850 = "C:\Users\annel\OneDrive - TU Eindhoven\Year 3\Q3\DBL Blood oxygenation\Code\InVivoData_group5\raw\PVA_blood_2_75MHz_min20deg_078_Rf_120523_213855_OBP_PA_PCAVG_384_36.raw"; % string with path to raw file of photoacoutic data (first wavelength) to be loaded
-% set image properties:
+filePathUS   = "C:\Users\annel\OneDrive - TU Eindhoven\Year 3\Q3\DBL Blood oxygenation\Code\InVivoData_group5\raw\PVA_blood_2_75MHz_min20deg_074_Rf_120523_211045_OBP_B_Extract_68.raw"; % string with path to raw file of ultrasound data to be loaded
+filePathW750 = "C:\Users\annel\OneDrive - TU Eindhoven\Year 3\Q3\DBL Blood oxygenation\Code\InVivoData_group5\raw\PVA_blood_2_75MHz_min20deg_074_Rf_120523_211045_OBP_PA_64_409.raw"; % string with path to raw file of photoacoutic data (second wavelength) to be loaded
+filePathW850 = "C:\Users\annel\OneDrive - TU Eindhoven\Year 3\Q3\DBL Blood oxygenation\Code\InVivoData_group5\raw\PVA_blood_2_75MHz_min20deg_074_Rf_120523_211045_OBP_PA_PCAVG_384_68.raw"; % string with path to raw file of photoacoutic data (first wavelength) to be loaded% set image properties:
 resolution_x_m  = .2*1e-3; % spacing between pixels in horizontal (x) direction [m]
 resolution_z_m  = .1*1e-3; % spacing between pixels in vertical (z) direction [m]
 imgBoundary_x_m = 20*1e-3; % distance of center of the transducer to left and right image boundary [m]
@@ -62,7 +60,7 @@ save('ReconstructedRDData.mat','z_axis','x_axis','imgsDataRF750','imgsDataRF750'
 % set indexes of frames that will be displayed:
 %(adjust this value to find a good time span where the image content does not move to much)
 %framesIndexes =  1:size(imgsDataRF750,3);% 5:15;%  vector with indexes of frames that will be averaged 
-framesIndexes =  15:27; % 5:15;%  vector with indexes of frames that will be averaged 
+framesIndexes =  30:44; % 5:15;%  vector with indexes of frames that will be averaged 
 for i_fr = framesIndexes
     
     % show US image:
@@ -88,7 +86,7 @@ end
 
 %% Apply averaging:
 
-framesIndexes =  15:27;
+framesIndexes =  30:44;
 
 % apply frame averaging on reconstructed images:
 imgDataRF750_avg = mean(imgsDataRF750(:,:,framesIndexes), 3);

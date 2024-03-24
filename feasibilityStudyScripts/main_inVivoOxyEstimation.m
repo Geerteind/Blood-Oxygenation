@@ -5,7 +5,8 @@
 %AUTHOR: 000 TEAM 5 000
 
 addpath('helpers');
-
+s = settings;
+        s.matlab.appearance.figure.GraphicsTheme.TemporaryValue= 'light'; % Can be set to auto (default), light, or dark
 %% Settings
 
 %  set file properties (note that W1->850nm and W2->750nm):
@@ -15,9 +16,9 @@ addpath('helpers');
 %filePathW850 = "C:\Users\annel\OneDrive - TU Eindhoven\Year 3\Q3\DBL Blood oxygenation\Code\feasibilityStudyScripts\feasibilityStudyScripts\data\hans_arm_invivo_000_Rf_021722_174806_OBP_PA_Wave2_PCAVG_384_127.raw"; % string with path to raw file of photoacoutic data (first wavelength) to be loaded
 
 % In vivo data: 
-filePathUS   = "C:\Users\annel\OneDrive - TU Eindhoven\Year 3\Q3\DBL Blood oxygenation\Code\InVivoData_group5\raw\PVA_blood_2_75MHz_min20deg_078_Rf_120523_213855_OBP_B_Extract_36.raw"; % string with path to raw file of ultrasound data to be loaded
-filePathW750 = "C:\Users\annel\OneDrive - TU Eindhoven\Year 3\Q3\DBL Blood oxygenation\Code\InVivoData_group5\raw\PVA_blood_2_75MHz_min20deg_078_Rf_120523_213855_OBP_PA_64_221.raw"; % string with path to raw file of photoacoutic data (second wavelength) to be loaded
-filePathW850 = "C:\Users\annel\OneDrive - TU Eindhoven\Year 3\Q3\DBL Blood oxygenation\Code\InVivoData_group5\raw\PVA_blood_2_75MHz_min20deg_078_Rf_120523_213855_OBP_PA_PCAVG_384_36.raw"; % string with path to raw file of photoacoutic data (first wavelength) to be loaded
+filePathUS   = "C:\Users\annel\OneDrive - TU Eindhoven\Year 3\Q3\DBL Blood oxygenation\Code\InVivoData_group5\raw\PVA_blood_2_75MHz_min20deg_074_Rf_120523_211045_OBP_B_Extract_68.raw"; % string with path to raw file of ultrasound data to be loaded
+filePathW750 = "C:\Users\annel\OneDrive - TU Eindhoven\Year 3\Q3\DBL Blood oxygenation\Code\InVivoData_group5\raw\PVA_blood_2_75MHz_min20deg_074_Rf_120523_211045_OBP_PA_64_409.raw"; % string with path to raw file of photoacoutic data (second wavelength) to be loaded
+filePathW850 = "C:\Users\annel\OneDrive - TU Eindhoven\Year 3\Q3\DBL Blood oxygenation\Code\InVivoData_group5\raw\PVA_blood_2_75MHz_min20deg_074_Rf_120523_211045_OBP_PA_PCAVG_384_68.raw"; % string with path to raw file of photoacoutic data (first wavelength) to be loaded
 %  set medium properties:
 c0             = 1540; % scalar with speed of sound use din reconstruction [m/s]
 mua_HBO2       = [2.7738,5.6654]; % Nwl element vector with the absorption coefficients of oxygenated blood @ [750,850]nm [a.u.]
@@ -35,7 +36,7 @@ imgBoundary_x_m = 0.0212; % distance of center of the transducer to left and rig
 imgBoundary_z_m = 0.02; % distance of transducer surface to bottom image boundary [m]
 
 %  set reconstruction properties:
-framesIndexes = 15:27; % vector with indexes of frames that will be averaged (use the script "test_findFrames.m" to identify which frames to use!)
+framesIndexes = 30:44; % vector with indexes of frames that will be averaged (use the script "test_findFrames.m" to identify which frames to use!)
 FNumber       = 2;   % positive number that defines the ratio of pixel depth to active aperture
 
 %% Load receive data
@@ -64,10 +65,10 @@ Nz = length(z_axis);
 
 %  get ultrasound image:
 figure(2); 
-i_frameUS = 10; % index of frame to retrieve
+i_frameUS = 25; % index of frame to retrieve
 imgUS = getUSImage(receiveDataRFUS(:,:,i_frameUS), fs_us,x_elem,c0, z_axis,x_axis);
 % Determine water in US image
-tissueMask = (imgUS > -30);
+tissueMask = (imgUS > -35);
 
 % Calculates minimum amount of water pixels for cropping
 minWater = Nz; % Minimum amount of water pixels in a vertical line
@@ -76,7 +77,7 @@ for x = 1:(Nx-1)
         minWater = min(sum(~tissueMask(:,x)),sum(~tissueMask(:,x+1)));
     end
 end
-minWater = minWater - 15;
+minWater = minWater - 5;
 USsmall= imgUS(minWater:end,:); %The cropped US image
 z_axis_cropped = z_axis(minWater:end);
 %  show images:
@@ -148,13 +149,11 @@ fluenceCompMap850 = calculateFluenceCompensationMap(z_axis,x_axis, [mua_water(2)
 %  apply fluence compensation (Nz-by-Nx array):
 imgDataComp750 = imgDataComp750 .* fluenceCompMap750; 
 imgDataComp850 = imgDataComp850 .* fluenceCompMap850; 
-
 %  cropping:
 %(set regions that contain artifacts (e.g. at the top of the images) to 0)
 
 imgDataComp750 = imgDataComp750(minWater:end,:);
 imgDataComp850 = imgDataComp850(minWater:end,:);
-
 %  smoothing:
 imgDataComp750 = imgaussfilt(imgDataComp750,1) ; % Gaussian filter: maybe a filter that retain edges would be better?
 imgDataComp850 = imgaussfilt(imgDataComp850,1) ; 
@@ -206,19 +205,20 @@ drawnow;
 %  convert component data (Nz-by-Nx array) into oxygenation map (Nz-by-Nx array) [%]:
 oxyMap = 100*(imgDataHBO2./(imgDataHB+imgDataHBO2));
 % define a boolean matrix (Nz-by-Nx) that is true for each pixel, for 
-%   which the image value is lower than a 30% of the maximum in the unmixed
+%   which the image value is lower than a 40% of the maximum in the unmixed
 %   images
 zeroMask = ( imgDataComp750+imgDataComp850 < 0.3*max(max(imgDataComp750(:)),max(imgDataComp850(:))) )...
           |( oxyMap > 100 );
 oxyMap(zeroMask) = 0;
-
+oxyMap(oxyMap<0) = 0;
 %  show image:
 lowerThresh = 0.05; % lowest oxygenation value that will be displayed on colormap
 figure(6); imagesc(x_axis*1e3, z_axis_cropped*1e3, oxyMap, [lowerThresh,100]); 
            colormap([zeros(1,3); cool]); axis image; colorbar; 
            xlabel('x [mm]'); ylabel('z [mm]'); title('oxygenation [%]');
 %%
-overlayOxy = imgOverlay(USsmall,oxyMap,0.3);
+overlayOxy = imgOverlay(USsmall,oxyMap,0);
 figure(7); imagesc(x_axis*1e3, z_axis_cropped*1e3, overlayOxy, [lowerThresh,100]); 
            colormap([zeros(1,3); hot]); axis image; colorbar; 
-           xlabel('x [mm]'); ylabel('z [mm]'); title('oxygenation [%]');
+           xlabel('x [mm]'); ylabel('z [mm]'); title('oxygenation [%] with US image overlayed for structural information');
+
