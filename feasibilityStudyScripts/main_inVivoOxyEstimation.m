@@ -70,18 +70,20 @@ imgUS = getUSImage(receiveDataRFUS(:,:,i_frameUS), fs_us,x_elem,c0, z_axis,x_axi
 tissueMask = (imgUS > -30);
 
 % Calculates minimum amount of water pixels for cropping
-minWater = length(z_axis); % Minimum amount of water pixels in a vertical line
-for x = 1:(length(x_axis)-1)
+minWater = Nz; % Minimum amount of water pixels in a vertical line
+for x = 1:(Nx-1)
     if (minWater > min(sum(~tissueMask(:,x)),sum(~tissueMask(:,x+1))))
         minWater = min(sum(~tissueMask(:,x)),sum(~tissueMask(:,x+1)));
     end
 end
-
+minWater = minWater - 15;
 USsmall= imgUS(minWater:end,:); %The cropped US image
+z_axis_cropped = z_axis(minWater:end);
 %  show images:
 subplot(121);   imagesc(x_axis*1e3,z_axis*1e3,imgUS); colormap gray; axis image; colorbar; % The normal US image
+                %yline(z_axis(end)-minWater,'-','Cropping boundary');
                 xlabel('x [mm]'); ylabel('z [mm]'); title('Image (US)');
-subplot(122);   imagesc(x_axis(:)*1e3,z_axis(minWater:end)*1e3,USsmall); colormap gray; axis image; colorbar; % The cropped US image
+subplot(122);   imagesc(x_axis(:)*1e3,z_axis_cropped*1e3,USsmall); colormap gray; axis image; colorbar; % The cropped US image
                 xlabel('x [mm]'); ylabel('z [mm]'); title('Image (US) cropped');
                 drawnow;
 
@@ -136,13 +138,13 @@ imgDataComp850 = envelope(imgDataRF850,f1,'analytic');
 
 %  correct for laser intensity ratio:
 imgDataComp750 = imgDataComp750 * 1.63; %(laser intensity of 750 is 1.63 times lower than 850)
-%%
+
 %  calculate fluence compensation weights (Nz-by-Nx array):
 %  (you can segment the US image to assing materials, especially to 
 %  distinguish tissue and the water layer on top of the tissue)
 fluenceCompMap750 = calculateFluenceCompensationMap(z_axis,x_axis, [mua_water(1),mua_background(1)], imgUS);
 fluenceCompMap850 = calculateFluenceCompensationMap(z_axis,x_axis, [mua_water(2),mua_background(2)], imgUS);
-%%
+
 %  apply fluence compensation (Nz-by-Nx array):
 imgDataComp750 = imgDataComp750 .* fluenceCompMap750; 
 imgDataComp850 = imgDataComp850 .* fluenceCompMap850; 
@@ -154,8 +156,15 @@ imgDataComp750 = imgDataComp750(minWater:end,:);
 imgDataComp850 = imgDataComp850(minWater:end,:);
 
 %  smoothing:
-imgDataComp750 = imgaussfilt(imgDataComp750,2) ; % Gaussian filter: maybe a filter that retain edges would be better?
-imgDataComp850 = imgaussfilt(imgDataComp850,2) ; 
+imgDataComp750 = imgaussfilt(imgDataComp750,1) ; % Gaussian filter: maybe a filter that retain edges would be better?
+imgDataComp850 = imgaussfilt(imgDataComp850,1) ; 
+
+% Alternative smoothing: min filter then median filter
+%se = strel('cube',2);
+%imgDataComp750 = imerode(imgDataComp750,se);
+%imgDataComp850 = imerode(imgDataComp850,se);
+%imgDataComp750 = medfilt2(imgDataComp750,[5,5]);
+%imgDataComp850 = medfilt2(imgDataComp850,[5,5]);
 
 %  other processing steps:
 % ... 000 ...
@@ -170,10 +179,10 @@ drawnow;
 %% Final images after processing
 %  show images:
 figure(3);
-subplot(121); imagesc(x_axis*1e3, z_axis*1e3, imgDataComp750); 
+subplot(121); imagesc(x_axis*1e3, z_axis_cropped*1e3, imgDataComp750); 
               colormap hot; axis image; colorbar; 
               xlabel('x [mm]'); ylabel('z [mm]'); title('Processed image @750nm');
-subplot(122); imagesc(x_axis*1e3, z_axis*1e3, imgDataComp850); 
+subplot(122); imagesc(x_axis*1e3, z_axis_cropped*1e3, imgDataComp850); 
               colormap hot; axis image; colorbar; 
               xlabel('x [mm]'); ylabel('z [mm]'); title('Processed image @850nm');
 drawnow;
@@ -185,10 +194,10 @@ drawnow;
 
 % show images:
 figure(5); 
-subplot(121); imagesc(x_axis*1e3, z_axis*1e3, imgDataHB); 
+subplot(121); imagesc(x_axis*1e3, z_axis_cropped*1e3, imgDataHB); 
               colormap hot; axis image; colorbar; 
               xlabel('x [mm]'); ylabel('z [mm]'); title('c_{HB}');
-subplot(122); imagesc(x_axis*1e3, z_axis*1e3, imgDataHBO2); 
+subplot(122); imagesc(x_axis*1e3, z_axis_cropped*1e3, imgDataHBO2); 
               colormap hot; axis image; colorbar; 
               xlabel('x [mm]'); ylabel('z [mm]'); title('c_{HBO2}');
 drawnow;
@@ -205,8 +214,11 @@ oxyMap(zeroMask) = 0;
 
 %  show image:
 lowerThresh = 0.05; % lowest oxygenation value that will be displayed on colormap
-figure(6); imagesc(x_axis*1e3, z_axis*1e3, oxyMap, [lowerThresh,100]); 
+figure(6); imagesc(x_axis*1e3, z_axis_cropped*1e3, oxyMap, [lowerThresh,100]); 
            colormap([zeros(1,3); cool]); axis image; colorbar; 
            xlabel('x [mm]'); ylabel('z [mm]'); title('oxygenation [%]');
-
-
+%%
+overlayOxy = imgOverlay(USsmall,oxyMap,0.3);
+figure(7); imagesc(x_axis*1e3, z_axis_cropped*1e3, overlayOxy, [lowerThresh,100]); 
+           colormap([zeros(1,3); hot]); axis image; colorbar; 
+           xlabel('x [mm]'); ylabel('z [mm]'); title('oxygenation [%]');
